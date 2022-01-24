@@ -2,6 +2,7 @@ import * as Three from 'three'
 import { WebGLRenderer } from 'three'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { Component } from './component/Component'
+import { SkeletonComponent } from './component/SkeletonComponent'
 import { SkyComponent } from './component/SkyComponent'
 import { Entity } from './entities/Entity'
 import { ak47Path, skyPath } from './utils/assetsPath'
@@ -19,8 +20,9 @@ class FPSGameApp {
     this.renderer = new WebGLRenderer({ antialias: true })
     this.listener = new Three.AudioListener()
     this.loader = new Loader()
-    this.setupGraphics()
     this.entitySetup()
+    this.setupGraphics()
+    this.update()
   }
   async setupGraphics() {
     this.renderer.shadowMap.enabled = true
@@ -33,12 +35,11 @@ class FPSGameApp {
 
     this.camera.add(this.listener)
     this.camera.lookAt(this.scene.position)
+    this.camera.position.set(0, 5, 5)
     this.scene.add(this.camera)
     this.windowResizeHandler()
 
     document.body.appendChild(this.renderer.domElement)
-
-    this.update()
   }
 
   windowResizeHandler() {
@@ -52,8 +53,12 @@ class FPSGameApp {
     const skyEntity = new Entity('sky')
     const skyTexture = await this.loader.loadTexture(skyPath, 'sky')
     const skyComponent = new SkyComponent(this.scene, skyTexture)
-    skyComponent.initialize()
     skyEntity.addComponent(skyComponent)
+
+    const playerEntity = new Entity('player')
+    const player = await this.loader.loadGltf(ak47Path, 'player')
+    const skeletonComponent = new SkeletonComponent(this.scene, player)
+    playerEntity.addComponent(skeletonComponent)
   }
 
   update() {
