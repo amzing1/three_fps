@@ -1,22 +1,18 @@
 import { Component } from './Component'
 import * as Three from 'three'
 import { GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
+import { Entity } from '../entities/Entity'
 
 /**
  * default is a cube
  */
 export class SkeletonComponent extends Component {
-  private scene: Three.Scene
   private gltf: GLTF
-  constructor(scene: Three.Scene, gltf: GLTF) {
+  constructor(gltf: GLTF) {
     super()
     this.name = 'skeleton'
-    this.scene = scene
     this.gltf = gltf
-    this.initialize()
-  }
-
-  initialize() {
-    this.scene.add(this.gltf.scene)
+    this.gltf.scene.scale.set(0.1, 0.1, 0.1)
+    this.object = this.gltf.scene
   }
 }

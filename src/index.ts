@@ -3,10 +3,11 @@ import { WebGLRenderer } from 'three'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { Component } from './component/Component'
 import { SkeletonComponent } from './component/SkeletonComponent'
-import { SkyComponent } from './component/SkyComponent'
+import { Sky } from './settings/Sky'
 import { Entity } from './entities/Entity'
 import { ak47Path, skyPath } from './utils/assetsPath'
 import { Loader } from './utils/loader'
+import { CameraComponent } from './component/CameraComponent'
 
 class FPSGameApp {
   private scene: Three.Scene
@@ -14,14 +15,18 @@ class FPSGameApp {
   private renderer: WebGLRenderer
   private listener: Three.AudioListener
   private loader: Loader
+  private clock: Three.Clock
   constructor() {
     this.scene = new Three.Scene()
     this.camera = new Three.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000)
     this.renderer = new WebGLRenderer({ antialias: true })
     this.listener = new Three.AudioListener()
     this.loader = new Loader()
-    this.entitySetup()
+    this.clock = new Three.Clock()
+  }
+  async init() {
     this.setupGraphics()
+    await this.entitySetup()
     this.update()
   }
   async setupGraphics() {
@@ -33,12 +38,10 @@ class FPSGameApp {
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.setClearColor(0x777777)
 
-    this.camera.add(this.listener)
-    this.camera.lookAt(this.scene.position)
-    this.camera.position.set(0, 5, 5)
-    this.scene.add(this.camera)
-    this.windowResizeHandler()
+    const skyTexture = await this.loader.loadTexture(skyPath, 'sky')
+    new Sky(this.scene, skyTexture)
 
+    this.windowResizeHandler()
     document.body.appendChild(this.renderer.domElement)
   }
 
@@ -50,20 +53,23 @@ class FPSGameApp {
   }
 
   async entitySetup() {
-    const skyEntity = new Entity('sky')
-    const skyTexture = await this.loader.loadTexture(skyPath, 'sky')
-    const skyComponent = new SkyComponent(this.scene, skyTexture)
-    skyEntity.addComponent(skyComponent)
-
-    const playerEntity = new Entity('player')
+    const playerEntity = new Entity('player', this.scene)
     const player = await this.loader.loadGltf(ak47Path, 'player')
-    const skeletonComponent = new SkeletonComponent(this.scene, player)
+    const skeletonComponent = new SkeletonComponent(player)
+    const cameraComponent = new CameraComponent(this.camera)
+    cameraComponent.setPosition(new Three.Vector3(0, 0, -0.08))
     playerEntity.addComponent(skeletonComponent)
+    playerEntity.addComponent(cameraComponent)
   }
 
   update() {
-    requestAnimationFrame(() => this.renderer.render(this.scene, this.camera))
+    requestAnimationFrame(this.animate.bind(this))
+  }
+
+  animate() {
+    this.renderer.render(this.scene, this.camera)
   }
 }
 
 const app = new FPSGameApp()
+app.init()

@@ -1,12 +1,10 @@
-import { Component } from './Component'
+import { Component } from '../component/Component'
 import * as Three from 'three'
 
-export class SkyComponent extends Component {
+export class Sky {
   private scene: Three.Scene
   private texture: Three.Texture
   constructor(scene: Three.Scene, skyTexture: Three.Texture) {
-    super()
-    this.name = 'sky'
     this.scene = scene
     this.texture = skyTexture
 
@@ -22,12 +20,13 @@ export class SkyComponent extends Component {
     const skyGeo = new Three.SphereGeometry(1000, 25, 25)
     const skyMat = new Three.MeshBasicMaterial({
       map: this.texture,
-      side: Three.BackSide,
+      side: Three.DoubleSide,
       depthWrite: false,
       toneMapped: false,
     })
     const sky = new Three.Mesh(skyGeo, skyMat)
     sky.rotateY(Three.MathUtils.degToRad(-60))
+    sky.position.set(500, 100, 100)
     this.scene.add(sky)
   }
 }
